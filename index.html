@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Before Dawn</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Lora', serif;
+    overflow-x: hidden;
+    background: #0a0a12;
+    color: #fff;
+  }
+
+  /* ===== SKY CANVAS (fixed background) ===== */
+  #sky {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    transition: background 0.1s ease;
+    background: #0a0a12;
+  }
+
+  /* Stars */
+  #stars {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+
+  .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle var(--duration) ease-in-out infinite alternate;
+  }
+
+  @keyframes twinkle {
+    from { opacity: 0.2; }
+    to { opacity: var(--max-opacity); }
+  }
+
+  /* Sun */
+  #sun {
+    position: fixed;
+    bottom: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff4c1 0%, #ffc857 40%, #ff8c42 70%, transparent 100%);
+    z-index: 1;
+    opacity: 0;
+    transition: bottom 0.1s ease, opacity 0.1s ease;
+    box-shadow: 0 0 80px 40px rgba(255, 200, 87, 0.3);
+  }
+
+  /* Horizon line */
+  #horizon {
+    position: fixed;
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 3px;
+    background: transparent;
+    z-index: 2;
+    transition: background 0.3s ease;
+  }
+
+  /* ===== CONTENT SECTIONS ===== */
+  .section {
+    position: relative;
+    z-index: 3;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 24px;
+    text-align: center;
+  }
+
+  .section-content {
+    max-width: 680px;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 1.2s ease, transform 1.2s ease;
+  }
+
+  .section-content.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Phase label */
+  .phase-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.75rem;
+    font-weight: 300;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    opacity: 0.5;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 300;
+    line-height: 1.3;
+    margin-bottom: 28px;
+    letter-spacing: 0.01em;
+  }
+
+  .section-body {
+    font-size: clamp(0.95rem, 2vw, 1.05rem);
+    line-height: 1.9;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+
+  .section-body p {
+    margin-bottom: 20px;
+  }
+
+  .section-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ===== OPENING SCREEN ===== */
+  #opening {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+    cursor: pointer;
+  }
+
+  #opening h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 300;
+    line-height: 1.5;
+    text-align: center;
+    max-width: 600px;
+    padding: 0 24px;
+    opacity: 0;
+    animation: fadeUp 2s ease forwards;
+  }
+
+  #opening .subtitle {
+    font-family: 'Lora', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 48px;
+    opacity: 0;
+    animation: fadeUp 2s ease 1.5s forwards;
+  }
+
+  #scroll-cue {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    animation: fadeUp 1.5s ease 3s forwards;
+    font-family: 'Lora', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+
+  #scroll-cue .arrow {
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+    animation: bob 2s ease-in-out infinite;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+
+  /* ===== DIVIDER ===== */
+  .divider {
+    width: 1px;
+    height: 80px;
+    background: rgba(255,255,255,0.15);
+    margin: 0 auto;
+    position: relative;
+    z-index: 3;
+  }
+
+  /* ===== DARK PHASE TEXT ===== */
+  .dark-text {
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* ===== WARM PHASE TEXT ===== */
+  .warm-text .section-title {
+    color: #ffecd2;
+  }
+
+  .warm-text .section-body {
+    color: rgba(255, 236, 210, 0.85);
+  }
+
+  .warm-text .phase-label {
+    color: rgba(255, 200, 140, 0.5);
+  }
+
+  /* ===== LIGHT PHASE TEXT ===== */
+  .light-text .section-title {
+    color: #3a2a1a;
+  }
+
+  .light-text .section-body {
+    color: rgba(58, 42, 26, 0.8);
+  }
+
+  .light-text .phase-label {
+    color: rgba(58, 42, 26, 0.4);
+  }
+
+  /* ===== GOLDEN PHASE ===== */
+  .golden-text .section-title {
+    color: #2a1a0a;
+  }
+
+  .golden-text .section-body {
+    color: rgba(42, 26, 10, 0.8);
+  }
+
+  .golden-text .phase-label {
+    color: rgba(42, 26, 10, 0.4);
+  }
+
+  /* ===== CLOSING ===== */
+  #closing {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 3;
+    padding: 60px 24px;
+  }
+
+  #closing .closing-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 300;
+    line-height: 1.6;
+    text-align: center;
+    max-width: 600px;
+    color: #2a1a0a;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 1.5s ease, transform 1.5s ease;
+  }
+
+  #closing .closing-text.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  #closing .closing-sub {
+    font-family: 'Lora', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    margin-top: 40px;
+    color: rgba(42, 26, 10, 0.5);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1.5s ease 0.5s, transform 1.5s ease 0.5s;
+  }
+
+  #closing .closing-sub.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== EMPHASIS ===== */
+  em.highlight {
+    font-style: italic;
+    opacity: 1;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 600px) {
+    .section { padding: 48px 20px; }
+    .section-title { margin-bottom: 20px; }
+  }
+
+  /* ===== PRINT ===== */
+  @media print {
+    #sky, #stars, #sun, #horizon { display: none; }
+    .section { min-height: auto; page-break-inside: avoid; }
+    .section-content { opacity: 1 !important; transform: none !important; }
+    body { background: #fff; color: #000; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Fixed sky background -->
+<div id="sky"></div>
+<div id="stars"></div>
+<div id="sun"></div>
+<div id="horizon"></div>
+
+<!-- Opening -->
+<div id="opening">
+  <h1>Before dawn, there is darkness.<br>I have sat in it all semester.</h1>
+  <div class="subtitle">Keep scrolling.</div>
+  <div id="scroll-cue">
+    <span>Begin</span>
+    <span class="arrow">&#8595;</span>
+  </div>
+</div>
+
+<!-- DARKNESS PHASE: Acknowledging what was witnessed -->
+<div class="section dark-text" data-phase="night">
+  <div class="section-content">
+    <div class="phase-label">What I witnessed</div>
+    <div class="section-title">I read about families paying $105 for water. I read about 1,181 names that represent an undercount. I read about Brian Sinclair, who waited 34 hours in an emergency room and died in a wheelchair because no one looked at him.</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section dark-text" data-phase="night">
+  <div class="section-content">
+    <div class="section-title">I read <em class="highlight">Structures of Indifference</em> and learned that Brian Sinclair's death was not a failure of the system.</div>
+    <div class="section-body">
+      <p>It was the system working exactly as it was built. He was seen. He was ignored. The structure did not break down that day. It performed.</p>
+      <p>I learned that the word for all of this is not accident. It is structure. It is indifference. It is policy. I sat with that.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section dark-text" data-phase="late-night">
+  <div class="section-content">
+    <div class="section-title">But this is not where the story ends.</div>
+    <div class="section-body">
+      <p>Because in every community where something was taken, someone is building it back.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- PREDAWN PHASE: First light — Maternal health & midwifery -->
+<div class="section" data-phase="predawn">
+  <div class="section-content">
+    <div class="phase-label">First light</div>
+    <div class="section-title">Indigenous midwives are returning birth to community.</div>
+    <div class="section-body">
+      <p>For decades, Indigenous women in remote communities were evacuated south to give birth alone in hospitals far from family, land, and ceremony. That practice is being challenged.</p>
+      <p>Midwifery programs rooted in Indigenous knowledge are growing across the country. Birth is returning to the people it belongs to. The first breath a child takes is heard by the community that will raise them.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- EARLY DAWN: Food sovereignty -->
+<div class="section" data-phase="early-dawn">
+  <div class="section-content">
+    <div class="phase-label">Growing</div>
+    <div class="section-title">Food sovereignty is being reclaimed from the ground up.</div>
+    <div class="section-body">
+      <p>Across the North and on reserves throughout the country, communities are building greenhouses, reviving country food programs, and teaching young people how to hunt, fish, trap, and harvest the way their grandparents did.</p>
+      <p>Food sovereignty is not just about nutrition. It is about self-determination. It is about refusing to depend on a supply chain that was never designed to serve the communities it claims to reach.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- DAWN: Indigenous masculinities & healing -->
+<div class="section warm-text" data-phase="dawn">
+  <div class="section-content">
+    <div class="phase-label">Reclaiming</div>
+    <div class="section-title">Indigenous men are redefining what strength looks like.</div>
+    <div class="section-body">
+      <p>Colonization imposed a narrow, violent model of masculinity that displaced the roles Indigenous men held for thousands of years: as protectors, teachers, healers, and fathers.</p>
+      <p>That work of reclamation is happening. Men are returning to ceremony, to mentorship, to fatherhood on their own terms. The book I read this semester called it regeneration. That word matters. It means this is not new. It is something coming back to life.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- SUNRISE: Accountability and action -->
+<div class="section warm-text" data-phase="sunrise">
+  <div class="section-content">
+    <div class="phase-label">Accountability</div>
+    <div class="section-title">The Calls to Action are not just a document. They are a test.</div>
+    <div class="section-body">
+      <p>94 Calls to Action from the Truth and Reconciliation Commission. 231 Calls for Justice from the MMIWG inquiry. These are not suggestions. They are instructions, written by the people who survived what this country did.</p>
+      <p>Some have been implemented. Most have not. But the fact that they exist on paper means they cannot be denied. The record is there. The question now is whether Canadians will act on it or file it away like a receipt.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- SUNRISE: Culturally safe care -->
+<div class="section warm-text" data-phase="sunrise">
+  <div class="section-content">
+    <div class="phase-label">Healing the healers</div>
+    <div class="section-title">The healthcare system is being asked to look at itself.</div>
+    <div class="section-body">
+      <p>Brian Sinclair died because the people in that waiting room saw an Indigenous man and made assumptions. That was not an isolated moment. It was a pattern, and it is the reason culturally safe care is now being taught in classrooms like ours.</p>
+      <p>We looked at cases of Indigenous patients navigating a system that was not built for them. We learned that cultural safety is not about memorizing traditions. It is about recognizing that the provider holds power, and that power has been used to cause harm. The first step toward healing in healthcare is admitting that the institution itself has been the wound.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- MORNING: Language and culture -->
+<div class="section light-text" data-phase="morning">
+  <div class="section-content">
+    <div class="phase-label">Reviving</div>
+    <div class="section-title">Languages that residential schools tried to kill are being spoken again.</div>
+    <div class="section-body">
+      <p>Immersion nests for toddlers. Language apps built by community members. Elders recording words and stories before they are lost. Across the country, Indigenous languages are being taught, learned, and loved back into daily life.</p>
+      <p>A language is not just vocabulary. It is a way of seeing the world. Every word recovered is a piece of the world restored.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- GOLDEN: Jordan's Principle -->
+<div class="section light-text" data-phase="golden">
+  <div class="section-content">
+    <div class="phase-label">Protecting</div>
+    <div class="section-title">A boy from Norway House Cree Nation changed federal policy without ever leaving a hospital.</div>
+    <div class="section-body">
+      <p>Jordan River Anderson was born with complex medical needs and spent the first two years of his life in a Winnipeg hospital. When doctors cleared him to move to a family home, the federal and provincial governments could not agree on who should pay for his care. They argued for over two more years. Jordan died at age five. He never spent a single day in a family home.</p>
+      <p>Jordan's Principle was created so that no First Nations child would ever again be denied services because of a jurisdictional dispute. The government of first contact pays first and sorts out the billing later. It passed unanimously in the House of Commons. It is now a legal obligation with no end date. That principle exists because a community turned their grief into law.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- GOLDEN HOUR: Youth and future -->
+<div class="section light-text" data-phase="golden">
+  <div class="section-content">
+    <div class="phase-label">Rising</div>
+    <div class="section-title">The next generation is not waiting for permission.</div>
+    <div class="section-body">
+      <p>Indigenous youth are becoming doctors, lawyers, filmmakers, engineers, and leaders, not in spite of their identity but because of it. They are bringing their knowledge into institutions that were built to exclude them and making those institutions answer for it.</p>
+      <p>They are not asking the system to make room. They are building their own rooms.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FULL LIGHT: Closing -->
+<div id="closing" data-phase="full-light">
+  <div class="closing-text">
+    Hope is not the absence of everything I learned this semester.<br><br>
+    It is the presence of people who refuse to let it be the end of the story.
+  </div>
+  <div class="closing-sub">HTHSCI 3AH3 &mdash; Winter 2026</div>
+</div>
+
+<!-- Extra scroll space -->
+<div style="height: 30vh; position: relative; z-index: 3;"></div>
+
+<script>
+  // ===== GENERATE STARS =====
+  const starsContainer = document.getElementById('stars');
+  const starCount = 200;
+
+  for (let i = 0; i < starCount; i++) {
+    const star = document.createElement('div');
+    star.classList.add('star');
+    const size = Math.random() * 2.5 + 0.5;
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+    star.style.setProperty('--max-opacity', (Math.random() * 0.6 + 0.4).toFixed(2));
+    star.style.animationDelay = (Math.random() * 5) + 's';
+    starsContainer.appendChild(star);
+  }
+
+  // ===== SKY GRADIENT PHASES =====
+  const skyPhases = [
+    { at: 0.00, bg: 'linear-gradient(to bottom, #0a0a12 0%, #0d0d1a 50%, #111122 100%)' },
+    { at: 0.10, bg: 'linear-gradient(to bottom, #0d0d1a 0%, #111133 50%, #1a1a2e 100%)' },
+    { at: 0.20, bg: 'linear-gradient(to bottom, #1a1a2e 0%, #1e1e3a 40%, #2d1b3d 100%)' },
+    { at: 0.30, bg: 'linear-gradient(to bottom, #1e1e3a 0%, #3d1f4e 40%, #4a2040 100%)' },
+    { at: 0.40, bg: 'linear-gradient(to bottom, #2a1535 0%, #5c2d5e 30%, #8b3a5e 70%, #a0444e 100%)' },
+    { at: 0.50, bg: 'linear-gradient(to bottom, #1a1a3a 0%, #6b3a6b 25%, #c7556b 55%, #e8845a 85%, #f0a050 100%)' },
+    { at: 0.60, bg: 'linear-gradient(to bottom, #2a2a5a 0%, #8b5a8b 20%, #d4826a 45%, #f0a860 65%, #f5c84a 85%, #fae07a 100%)' },
+    { at: 0.70, bg: 'linear-gradient(to bottom, #4a5a8a 0%, #a08ab0 15%, #e0a070 35%, #f5c560 55%, #fae090 75%, #fdf0c0 100%)' },
+    { at: 0.80, bg: 'linear-gradient(to bottom, #6a8ab5 0%, #c0b0d0 15%, #f0d090 35%, #fae0a0 55%, #fdf0c8 75%, #fff8e0 100%)' },
+    { at: 0.90, bg: 'linear-gradient(to bottom, #87AACC 0%, #d4c8e0 15%, #f5e0b0 30%, #fdf0d0 50%, #fff8e8 75%, #fffdf5 100%)' },
+    { at: 1.00, bg: 'linear-gradient(to bottom, #9fbfdf 0%, #d8d4e8 10%, #f8ead0 25%, #fef4e0 45%, #fffbf0 70%, #fffef8 100%)' },
+  ];
+
+  const sky = document.getElementById('sky');
+  const stars = document.getElementById('stars');
+  const sun = document.getElementById('sun');
+  const horizon = document.getElementById('horizon');
+
+  // ===== SCROLL HANDLER =====
+  function getScrollProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    return Math.min(Math.max(scrollTop / docHeight, 0), 1);
+  }
+
+  function updateSky() {
+    const progress = getScrollProgress();
+
+    // Find the two phases we're between
+    let lower = skyPhases[0];
+    let upper = skyPhases[skyPhases.length - 1];
+
+    for (let i = 0; i < skyPhases.length - 1; i++) {
+      if (progress >= skyPhases[i].at && progress <= skyPhases[i + 1].at) {
+        lower = skyPhases[i];
+        upper = skyPhases[i + 1];
+        break;
+      }
+    }
+
+    // Snap to nearest phase for clean transitions
+    const midpoint = (lower.at + upper.at) / 2;
+    sky.style.background = progress < midpoint ? lower.bg : upper.bg;
+
+    // Stars fade
+    const starOpacity = Math.max(0, 1 - progress * 2.5);
+    stars.style.opacity = starOpacity;
+
+    // Sun rises starting at 50% scroll
+    if (progress > 0.45) {
+      const sunProgress = (progress - 0.45) / 0.55;
+      sun.style.opacity = Math.min(sunProgress * 1.5, 1);
+      sun.style.bottom = (-120 + sunProgress * 220) + 'px';
+      sun.style.boxShadow = `0 0 ${80 + sunProgress * 120}px ${40 + sunProgress * 80}px rgba(255, 200, 87, ${0.2 + sunProgress * 0.3})`;
+    } else {
+      sun.style.opacity = 0;
+      sun.style.bottom = '-120px';
+    }
+
+    // Horizon glow
+    if (progress > 0.35) {
+      const horizonProgress = (progress - 0.35) / 0.3;
+      const alpha = Math.min(horizonProgress * 0.6, 0.4);
+      horizon.style.background = `linear-gradient(to top, rgba(255, 180, 100, ${alpha}) 0%, transparent 100%)`;
+      horizon.style.height = (3 + horizonProgress * 60) + 'px';
+    }
+  }
+
+  // ===== INTERSECTION OBSERVER =====
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, {
+    threshold: 0.2,
+    rootMargin: '0px 0px -50px 0px'
+  });
+
+  document.querySelectorAll('.section-content, .closing-text, .closing-sub').forEach(el => {
+    observer.observe(el);
+  });
+
+  // ===== SCROLL LISTENER =====
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        updateSky();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  // Initial state
+  updateSky();
+</script>
+
+</body>
+</html>
